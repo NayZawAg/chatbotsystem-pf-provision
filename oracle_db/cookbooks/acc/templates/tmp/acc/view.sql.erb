@@ -1,0 +1,86 @@
+--whenever sqlerror exit;
+PAUSE local_id: <%= @local_id %> prefix_name: <%= @prefix_name %>
+PROMPT &_DATE Create View start
+
+PROMPT create <%= @prefix_name %>_users view by local_id:
+CREATE VIEW <%= @prefix_name %>_users AS
+  SELECT
+    *
+  FROM
+    users
+  WHERE
+    local_id = '<%= @local_id %>'
+  WITH CHECK OPTION;
+
+PROMPT create <%= @prefix_name %>_buy_records view by local_id:
+CREATE VIEW <%= @prefix_name %>_buy_records AS
+  SELECT
+    *
+  FROM
+    buy_records
+  WHERE
+    local_id = '<%= @local_id %>'
+  WITH CHECK OPTION;
+
+PROMPT create <%= @prefix_name %>_use_records view by local_id:
+CREATE VIEW <%= @prefix_name %>_use_records AS
+  SELECT
+    *
+  FROM
+    use_records
+  WHERE
+    local_id = '<%= @local_id %>'
+  WITH CHECK OPTION;
+
+PROMPT create <%= @prefix_name %>_view_records view by local_id:
+CREATE VIEW <%= @prefix_name %>_view_records AS
+  SELECT
+    *
+  FROM
+    view_records
+  WHERE
+    local_id = '<%= @local_id %>'
+  WITH CHECK OPTION;
+
+PROMPT create <%= @prefix_name %>_move_records view by local_id:
+CREATE VIEW <%= @prefix_name %>_move_records AS
+  SELECT
+    *
+  FROM
+    move_records
+  WHERE
+    local_id = '<%= @local_id %>'
+  WITH CHECK OPTION;
+
+PROMPT create <%= @prefix_name %>_action_histories view by local_id:
+CREATE VIEW <%= @prefix_name %>_action_histories AS
+  SELECT
+    *
+  FROM
+    action_histories
+  WHERE
+    local_id = '<%= @local_id %>'
+  WITH CHECK OPTION;
+
+PROMPT create <%= @prefix_name %>_omotenashi_ids view by local_id:
+CREATE VIEW <%= @prefix_name %>_omotenashi_ids AS
+  SELECT
+    *
+  FROM
+    omotenashi_ids
+  WHERE
+    local_id = '<%= @local_id %>'
+  WITH CHECK OPTION;
+
+PROMPT create <%= @prefix_name %>_transaction_errors view by local_id:
+CREATE VIEW <%= @prefix_name %>_transaction_errors AS
+  SELECT
+    *
+  FROM
+    transaction_errors
+  WHERE
+    local_id = '<%= @local_id %>'
+  WITH CHECK OPTION;
+
+PROMPT &_DATE Create View end
+exit;

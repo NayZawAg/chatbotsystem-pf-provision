@@ -1,0 +1,69 @@
+version: "3.7"
+services:
+  chatapi: &app_base
+    build:
+      context: ../omotenashi-pf-chatapi
+      dockerfile: ./Dockerfile
+    networks:
+      - omotenashi-net
+    tty: true
+    stdin_open: true
+    restart: always
+    env_file:
+      - ./env/uat.env
+    container_name: chatapi
+    environment:
+      API_TYPE: chatapi
+      RAILS_ENV: uat
+      RACK_ENV: uat
+      BUNDLE_PATH: /usr/local/bundle
+      RAILS_MASTER_KEY: 1796d54f53be1a4638fe22a7685cc2b8
+      DB_USER: Admin123@acjpenuomosql01
+      DB_NAME: ACJPENUOMOSQLDB03
+      DB_HOST: acjpenuomosql01.database.windows.net
+      DB_PORT: 1433
+      BLOB_ACC_NAME: acjpenpomosta02
+      BLOB_ACCESS_KEY: OiVXg1KFKDCnjsB4zax7/NLlt94RJ25H+XcKN0g4XQ0AFiwBZQN/siO0buuJQlgSQjI+iGZpnNTDReOAN/++bw==
+      BLOB_CONTAINER_NAME: conversation-histories
+    ports:
+      - "8080:8080"
+    command: bash -c "bundle install && rm -f tmp/pids/server.pid && bundle exec rails s -p 8080 -b '0.0.0.0'"
+    volumes:
+      - ../omotenashi-pf-chatapi:/app
+      - bundle:/usr/local/bundle
+      - chatapi-tmp:/app/tmp
+  # chatapi-cronjob:
+  #   <<: *app_base
+  #   container_name: chatapi-cronjob
+  #   ports:
+  #     - 3100:3100
+  #   command: bash -c "bundle exec whenever --update-crontab && cron -f"
+  #   volumes:
+  #     - ../omotenashi-pf-chatapi:/app
+  #     - bundle:/usr/local/bundle
+  #     - chatapi-cronjob-tmp:/app/tmp
+  nginx:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: Dockerfile.chatapi-nginx
+      args:
+        APP_ENV: uat
+        TYPE: chatapi
+    ports:
+      - "443:443"
+    networks:
+      - omotenashi-net
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    depends_on:
+      - chatapi
+    restart: always
+networks:
+  omotenashi-net:
+volumes:
+  bundle:
+    driver: local
+  chatapi-tmp:
+    driver: local
+  # chatapi-cronjob-tmp:

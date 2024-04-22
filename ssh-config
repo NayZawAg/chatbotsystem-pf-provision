@@ -1,0 +1,126 @@
+Host *
+    StrictHostKeyChecking no
+    ForwardAgent yes
+
+Host lb-omotenashi
+    HostName 146.56.5.138
+    IdentityFile ~/.ssh/omotenashi-key
+    User opc
+
+Host anonlb-omotenashi
+    HostName 192.168.0.50
+    IdentityFile ~/.ssh/omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p lb-omotenashi
+
+Host anon-omotenashi-1
+    HostName 192.168.0.10
+    IdentityFile ~/.ssh/omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p lb-omotenashi
+
+Host anon-omotenashi-2
+    HostName 192.168.0.11
+    IdentityFile ~/.ssh/omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p lb-omotenashi
+
+Host api-omotenashi-1
+    HostName 192.168.0.20
+    IdentityFile ~/.ssh/omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p lb-omotenashi
+
+Host api-omotenashi-2
+    HostName 192.168.0.21
+    IdentityFile ~/.ssh/omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p lb-omotenashi
+
+Host job-omotenashi-1
+    HostName 192.168.0.30
+    IdentityFile ~/.ssh/omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p lb-omotenashi
+
+Host job-omotenashi-2
+    HostName 192.168.0.31
+    IdentityFile ~/.ssh/omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p lb-omotenashi
+
+Host acc-omotenashi-db
+    HostName 192.168.0.4
+    IdentityFile ~/.ssh/omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p lb-omotenashi
+
+Host ana-omotenashi-db
+    HostName 192.168.0.2
+    IdentityFile ~/.ssh/omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p lb-omotenashi
+
+Host auth-omotenashi-1
+    HostName 192.168.0.40
+    IdentityFile ~/.ssh/omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p lb-omotenashi
+
+Host auth-omotenashi-2
+    HostName 192.168.0.41
+    IdentityFile ~/.ssh/omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p lb-omotenashi
+
+Host stg-lb-omotenashi
+    HostName 146.56.5.140
+    IdentityFile ~/.ssh/stg-omotenashi-key
+    User opc
+
+Host stg-anon-omotenashi
+    HostName 192.168.0.4
+    IdentityFile ~/.ssh/stg-omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p stg-lb-omotenashi
+
+Host stg-api-omotenashi
+    HostName 192.168.0.5
+    IdentityFile ~/.ssh/stg-omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p stg-lb-omotenashi
+
+Host stg-job-omotenashi
+    HostName 192.168.0.6
+    IdentityFile ~/.ssh/stg-omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p stg-lb-omotenashi
+
+Host stg-auth-omotenashi
+    HostName 192.168.0.10
+    IdentityFile ~/.ssh/stg-omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p stg-lb-omotenashi
+
+Host stg-acc-omotenashi-db
+    HostName 192.168.0.2
+    IdentityFile ~/.ssh/stg-omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p stg-lb-omotenashi
+
+Host stg-ana-omotenashi-db
+    HostName 192.168.0.7
+    IdentityFile ~/.ssh/stg-omotenashi-key
+    User opc
+    ProxyCommand ssh -W %h:%p stg-lb-omotenashi
+
+Host web-omotenashi
+    HostName 146.56.5.141
+    IdentityFile ~/.ssh/omotenashi-key
+    User opc
+
+Host stg-web-omotenashi
+    HostName 146.56.5.142
+    IdentityFile ~/.ssh/stg-omotenashi-key
+    User opc
+

@@ -1,0 +1,15 @@
+[lb]
+anonlb-omotenashi
+
+[lbserver:children]
+lb
+
+[production:children]
+lbserver
+
+[production:vars]
+ansible_connection=ssh
+ANON_LIST='{{ ["192.168.0.10", "192.168.0.11" ] }}'
+
+[all:vars]
+HOST_ID=omotenashi-anonlb

@@ -1,0 +1,24 @@
+---
+- hosts: all
+  roles:
+
+- hosts: web
+  become_user: root
+  become: yes
+  vars:
+    MACKEREL_DISPLAY_NAME: "app"
+  roles:
+    - app
+    - ruby
+    - oracle_client
+    - nginx
+    - mackerel-agent
+
+  tasks:
+    - name: copy nginx config
+      template:
+        src: api.conf
+        dest: "/etc/nginx/conf.d/{{ HOST_ID }}.conf"
+      tags:
+        - nginx
+

@@ -1,0 +1,19 @@
+FROM nginx:latest
+
+ARG TYPE_ACCESS
+ARG TYPE_CHATBOT
+ARG APP_ENV
+COPY "files/crt/${TYPE_ACCESS}-${APP_ENV}.crt" /etc/nginx/ssl/web-access.crt
+COPY "files/crt/${TYPE_ACCESS}-${APP_ENV}.key" /etc/nginx/ssl/web-access.key
+COPY "files/crt/${TYPE_CHATBOT}-${APP_ENV}.crt" /etc/nginx/ssl/web-chatbot.crt
+COPY "files/crt/${TYPE_CHATBOT}-${APP_ENV}.key" /etc/nginx/ssl/web-chatbot.key
+
+RUN chmod 755 /etc/nginx/ssl/web-access.crt
+RUN chmod 700 /etc/nginx/ssl/web-access.key
+RUN chmod 755 /etc/nginx/ssl/web-chatbot.crt
+RUN chmod 700 /etc/nginx/ssl/web-chatbot.key
+
+COPY files/web-nginx.${APP_ENV} /etc/nginx/conf.d/default.conf
+
+RUN mkdir /app 
+WORKDIR /app

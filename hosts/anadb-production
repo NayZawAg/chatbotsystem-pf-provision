@@ -1,0 +1,20 @@
+[db]
+ana-omotenashi-db
+
+[staging:children]
+db
+
+[staging:vars]
+ansible_connection=ssh
+ansible_ssh_host=ana-omotenashi-db
+
+[all:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+from_user=stganon
+from_pass=keigha2IiV7Ea
+from_dsn=192.168.0.4:1521/ACCOMOTENASHI.a553282.oraclecloud.internal
+to_user=prdana
+to_pass=eethoofeoJau7Sie
+to_dsn=localhost:1521/ANAOMOTENASHI.a553282.oraclecloud.internal
+API_PATH=../omotenashi-api/
+

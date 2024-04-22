@@ -1,0 +1,61 @@
+version: "3.7"
+
+services:
+  web:
+    build: ../omotenashi-pf-web
+    networks:
+      - omotenashi-net
+    tty: true
+    stdin_open: true
+    container_name: web
+    environment:
+      AZ_STORAGE_ACCOUNT_NAME: ${AZ_STORAGE_ACCOUNT_NAME}
+      AZ_STORAGE_KEY: ${AZ_STORAGE_KEY}
+      AZ_STORAGE_CONNECTION_STRING: ${AZ_STORAGE_CONNECTION_STRING}
+      AZ_STORAGE_CONTAINER: ${AZ_STORAGE_CONTAINER}
+    ports:
+      - "9000:9000"
+    volumes:
+      - ../omotenashi-pf-web:/var/www/html/web
+      - ./files/php.ini:/usr/local/etc/php/php.ini:ro
+    restart: always
+  chatbot:
+    build: ../omotenashi-pf-chatbot
+    networks:
+      - omotenashi-net
+    tty: true
+    stdin_open: true
+    container_name: chatbot
+    environment:
+      HOST_NAME: chat.withjorge.jp
+      AZ_STORAGE_ACCOUNT_NAME: ${AZ_STORAGE_ACCOUNT_NAME}
+      AZ_STORAGE_KEY: ${AZ_STORAGE_KEY}
+      AZ_STORAGE_CONNECTION_STRING: ${AZ_STORAGE_CONNECTION_STRING}
+      AZ_STORAGE_CONTAINER: ${AZ_STORAGE_CONTAINER}
+    volumes:
+      - ../omotenashi-pf-chatbot:/var/www/html/chatbot
+      - ./files/php.ini:/usr/local/etc/php/php.ini:ro
+    restart: always
+  nginx:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: Dockerfile.web-nginx
+      args:
+        APP_ENV: production
+        TYPE_ACCESS: access
+        TYPE_CHATBOT: chatbot
+    ports:
+      - "443:443"
+    networks:
+      - omotenashi-net
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ../omotenashi-pf-web:/var/www/html/web
+      - ../omotenashi-pf-chatbot:/var/www/html/chatbot
+    depends_on:
+      - web
+      - chatbot
+    restart: always
+networks:
+  omotenashi-net:

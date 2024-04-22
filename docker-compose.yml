@@ -1,0 +1,46 @@
+version: "3.7"
+services:
+  web:
+    build: ../omotenashi-pf-web
+    networks:
+      - omotenashi-net
+    tty: true
+    stdin_open: true
+    container_name: web
+    ports:
+      - "9000:9000"
+    volumes:
+      - ../omotenashi-pf-web:/var/www/html/web
+      - ./files/php.ini:/usr/local/etc/php/php.ini:ro
+  chatbot:
+    build: ../omotenashi-pf-chatbot
+    networks:
+      - omotenashi-net
+    tty: true
+    stdin_open: true
+    container_name: chatbot
+    volumes:
+      - ../omotenashi-pf-chatbot:/var/www/html/chatbot
+      - ./files/php.ini:/usr/local/etc/php/php.ini:ro
+  nginx:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: Dockerfile.web-nginx
+      args:
+        APP_ENV: development
+        TYPE_ACCESS: access
+        TYPE_CHATBOT: chatbot
+    ports:
+      - "80:80"
+    networks:
+      - omotenashi-net
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ../omotenashi-pf-web:/var/www/html/web
+      - ../omotenashi-pf-chatbot:/var/www/html/chatbot
+    depends_on:
+      - web
+      - chatbot
+networks:
+  omotenashi-net:

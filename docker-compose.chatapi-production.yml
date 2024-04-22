@@ -1,0 +1,58 @@
+version: "3.7"
+x-rails-base: &rails-base
+  build: ../omotenashi-pf-chatapi
+  networks:
+    - omotenashi-net
+  tty: true
+  stdin_open: true
+  restart: always
+
+services:
+  chatapi:
+    <<: *rails-base
+    container_name: chatapi
+    environment:
+      API_TYPE: chatapi
+      RAILS_ENV: production
+      RACK_ENV: production
+      BUNDLE_PATH: /bundle/ruby/2.5.0
+      BUNDLE_GITHUB__COM: norio-reflekso:ab26ecf226015d48ce06f88c93b2f113d9992482
+      RAILS_MASTER_KEY: 1796d54f53be1a4638fe22a7685cc2b8
+      DB_USER: Admin123@acjpenpomosql01
+      DB_NAME: ACJPENPOMOSQLDB03
+      DB_HOST: acjpenpomosql01.database.windows.net
+      DB_PORT: 1433
+    ports:
+      - "8080:8080"
+    command: bundle exec rails s -p 8080 -b '0.0.0.0'
+    volumes:
+      - ../omotenashi-pf-chatapi:/app
+      - bundle:/bundle
+      - chatapi-tmp:/app/tmp
+  nginx:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: Dockerfile.chatapi-nginx
+      args:
+        APP_ENV: production
+        TYPE: chatapi
+    ports:
+      - "443:443"
+    networks:
+      - omotenashi-net
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    depends_on:
+      - chatapi
+    restart: always
+
+networks:
+  omotenashi-net:
+
+volumes:
+  bundle:
+    driver: local
+  chatapi-tmp:
+    driver: local
+

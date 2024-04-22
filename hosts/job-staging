@@ -1,0 +1,16 @@
+[web]
+omotenashi-job.app
+
+[webserver:children]
+web
+
+[staging:children]
+webserver
+
+[staging:vars]
+ansible_connection=ssh
+ansible_ssh_host=stg-job-omotenashi
+
+[all:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+HOST_ID=omotenashi-job

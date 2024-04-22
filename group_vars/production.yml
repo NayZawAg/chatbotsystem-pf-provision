@@ -1,0 +1,6 @@
+STAGE: production
+APP_USER: opc
+ruby_version: "2.5.1"
+MACKEREL:
+  APIKEY: "f1Sv9RJJ6yeeJt85ehmYTHf4MerzPe6GkdQPREJiBNhq"
+  ROLE_PREFIX: "PRD:"

@@ -1,0 +1,57 @@
+---
+- hosts: all
+  roles:
+
+- hosts: web
+  become_user: root
+  become: yes
+  vars:
+    MACKEREL_DISPLAY_NAME: "LB"
+  roles:
+    - nginx
+    - mackerel-agent
+
+  tasks:
+    - name: make directory
+      file:
+        path: /etc/pki/tls/certs
+        mode: 0700
+        owner: root
+        group: root
+        state: directory
+      when: "'development' not in group_names"
+      with_items:
+        - "/etc/pki/tls/certs"
+        - "/etc/pki/tls/private"
+      tags:
+        - nginx
+
+    - name: copy withjorge.crt file
+      copy:
+        dest: /etc/pki/tls/certs/withjorge.crt
+        src: withjorge.crt
+        mode: 0400
+        owner: root
+        group: root
+      when: "'development' not in group_names"
+      tags:
+        - nginx
+
+    - name: copy withjorge.key file
+      copy:
+        dest: /etc/pki/tls/private/withjorge.key
+        src: withjorge.key
+        mode: 0400
+        owner: root
+        group: root
+      when: "'development' not in group_names"
+      tags:
+        - nginx
+
+    - name: copy nginx config
+      template:
+        src: lb.conf
+        dest: "/etc/nginx/conf.d/{{ HOST_ID }}.conf"
+      tags:
+        - nginx
+

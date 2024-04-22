@@ -1,0 +1,119 @@
+--whenever sqlerror exit;
+
+PROMPT --########################################
+PROMPT --# Initialize Rule Configuration
+PROMPT --########################################
+PROMPT --# Delete Command Rule
+EXECUTE DBMS_MACADM.DELETE_COMMAND_RULE('CONNECT', '%', '%');
+PROMPT --# Delete Rule Set
+EXECUTE DBMS_MACADM.DELETE_RULE_SET('RS_CONNECT');
+PROMPT --# Delete Rule
+EXECUTE DBMS_MACADM.DELETE_RULE('RULE_CONN_OTHER');
+EXECUTE DBMS_MACADM.DELETE_RULE('RULE_CONN_DBA');
+EXECUTE DBMS_MACADM.DELETE_RULE('RULE_CONN_AP');
+PAUSE --#@TEST: FINISHED INITIALIZATION. TYPE ENTER TO CONTINUE;
+
+PROMPT --########################################
+PROMPT --# Create Realm Configuration
+PROMPT --########################################
+
+PROMPT --# Create Rule Set
+PAUSE --#@TEST: TYPE ENTER TO CONTINUE;
+BEGIN
+--#@TEST START: CREATE RULE SET
+  DBMS_MACADM.CREATE_RULE_SET(
+    rule_set_name   => 'RS_CONNECT',
+    description     => 'Limit DB connection.',
+    enabled         => 'Y',   --# DBMS_MACUTL.G_YES
+    eval_options    => 2,     --# DBMS_MACUTL.G_RULESET_EVAL_ANY
+    audit_options   => 1,     --# DBMS_MACUTL.G_RULESET_AUDIT_FAIL
+    fail_options    => 2,     --# DBMS_MACUTL.G_RULESET_FAIL_SILENT
+    fail_message    => '',
+    fail_code       => '',
+    handler_options => 0,     --# DBMS_MACUTL.G_RULESET_HANDLER_OFF
+    handler         => '',
+    is_static       => FALSE
+  );
+--#@TEST END  : CREATE RULE SET
+END;
+/
+
+col RULE_SET_NAME for a25
+col DESCRIPTION   for a30
+SELECT RULE_SET_NAME, DESCRIPTION FROM DVSYS.DBA_DV_RULE_SET
+where rule_set_name like 'RS_%'
+order by 1;
+
+PROMPT --# Create Rule
+PAUSE --#@TEST: TYPE ENTER TO CONTINUE;
+begin
+--#@TEST START: CREATE RULE
+dbms_macadm.create_rule('RULE_CONN_DBA'
+  ,'(DVF.F$SESSION_USER in (''＜ユーザ名＞'', ''＜ユーザ名＞'')) and (
+  /* DB BEQ  */  (DVF.F$CLIENT_IP is null) or
+                  (DVF.F$CLIENT_IP in
+  /* DB IP   */    (''＜ＩＰ＞''
+                  )))');
+
+dbms_macadm.create_rule('RULE_CONN_AP'
+  ,'(DVF.F$SESSION_USER = ''＜ユーザ名＞'') and
+                  (DVF.F$CLIENT_IP in
+  /* AP       */    (''＜ＩＰ＞''
+                  ))');
+
+dbms_macadm.create_rule('RULE_CONN_OTHER'
+  ,'
+  /* DB BEQ  */  (DVF.F$CLIENT_IP is null) or
+                  (DVF.F$CLIENT_IP in
+  /* DB IP   */    (''＜ＩＰ＞''
+                  ))');
+
+
+--#@TEST END  : CREATE RULE
+end;
+/
+
+col NAME      for a25
+col RULE_EXPR for a75
+SELECT NAME, RULE_EXPR FROM DVSYS.DBA_DV_RULE
+WHERE NAME like 'RULE_%'
+order by 1;
+
+PROMPT --# Add Rule to Rule Set
+PAUSE --#@TEST: TYPE ENTER TO CONTINUE;
+execute DBMS_MACADM.ADD_RULE_TO_RULE_SET('RS_CONNECT', 'RULE_CONN_OTHER', 1, 'Y');
+execute DBMS_MACADM.ADD_RULE_TO_RULE_SET('RS_CONNECT', 'RULE_CONN_DBA', 1, 'Y');
+execute DBMS_MACADM.ADD_RULE_TO_RULE_SET('RS_CONNECT', 'RULE_CONN_AP', 1, 'Y');
+
+col RULE_SET_NAME for a25
+col RULE_NAME     for a25
+col RULE_EXPR     for a40
+SELECT * FROM DVSYS.DBA_DV_RULE_SET_RULE
+where rule_set_name like 'RS_%'
+order by 1,2;
+
+PROMPT --# Create Command Rule
+PAUSE --#@TEST: TYPE ENTER TO CONTINUE;
+BEGIN
+--#@TEST START: CREATE COMMAND RULE
+  DBMS_MACADM.CREATE_COMMAND_RULE(
+    command         => 'CONNECT',
+    rule_set_name   => 'RS_CONNECT',
+    object_owner    => '%',
+    object_name     => '%',
+    enabled         => 'Y'
+  );
+--#@TEST END  : CREATE RCOMMAND RULE
+END;
+/
+
+col COMMAND       for a15
+col RULE_SET_NAME for a25
+col OBJECT_OWNER  for a15
+col OBJECT_NAME   for a15
+col ENABLED       for a7
+SELECT * FROM DVSYS.DBA_DV_COMMAND_RULE
+where rule_set_name like 'RS_%'
+order by 1;
+
+exit;

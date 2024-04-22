@@ -1,0 +1,220 @@
+version: "3.7"
+x-rails-base: &rails-base
+  build: ../omotenashi-pf-api
+  depends_on:
+    - mssql
+    - redis
+  networks:
+    - omotenashi-net
+  tty: true
+  stdin_open: true
+  env_file:
+    - ./env/development.env
+services:
+  api:
+    <<: *rails-base
+    container_name: api
+    environment:
+      API_TYPE: api
+      RAILS_ENV: development
+      RACK_ENV: development
+      BUNDLE_PATH: /bundle/ruby/2.5.0
+      BUNDLE_GITHUB__COM: cm-manage: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
+      RAILS_MASTER_KEY: 42f4d14aeecf3ce0b0fe26353e133ae3
+      DB_USER: omouser
+      DB_NAME: acc
+      DB_HOST: mssql
+      DB_PORT: 1433
+      REDIS_PASS: 123
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ACC_DB_USER: omouser
+      ACC_DB_NAME: acc
+      ANON_DB_NAME: anon
+      ANON_DB_USER: omouser
+    ports:
+      - "3000:3000"
+    command: bash -c "bundle install && rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - ../omotenashi-pf-api:/app
+      - ../omotenashi-pf-redis:/redis-gem
+      - bundle:/bundle
+      - api-tmp:/app/tmp
+  anon:
+    <<: *rails-base
+    container_name: anon
+    environment:
+      API_TYPE: anon
+      RAILS_ENV: development
+      RACK_ENV: development
+      BUNDLE_PATH: /bundle/ruby/2.5.0
+      BUNDLE_GITHUB__COM: cm-manage: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
+      RAILS_MASTER_KEY: 42f4d14aeecf3ce0b0fe26353e133ae3
+      DB_USER: omouser
+      DB_NAME: anon
+      DB_HOST: mssql
+      DB_PORT: 1433
+      REDIS_PASS: 123
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ACC_DB_USER: omouser
+      ACC_DB_NAME: acc
+      ANON_DB_NAME: anon
+      ANON_DB_USER: omouser
+    ports:
+      - "3100:3100"
+    command: bash -c "bundle install && rm -f tmp/pids/server.pid && bundle exec rails s -p 3100 -b '0.0.0.0'"
+    volumes:
+      - ../omotenashi-pf-api:/app
+      - ../omotenashi-pf-api/db/schema-anon.rb:/app/db/schema.rb
+      - ../omotenashi-pf-redis:/redis-gem
+      - bundle:/bundle
+      - anon-tmp:/app/tmp
+  auth:
+    <<: *rails-base
+    build: ../omotenashi-pf-authorization
+    container_name: auth
+    environment:
+      RAILS_ENV: development
+      RACK_ENV: development
+      BUNDLE_PATH: /bundle/ruby/2.5.0
+      BUNDLE_GITHUB__COM: cm-manage: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
+      RAILS_MASTER_KEY: 814009cd443d8f0aca889b10f0dcbc4f
+      RAILS_SERVE_STATIC_FILES: 1
+      DB_HOST: mssql
+      DB_PORT: 1433
+      REDIS_PASS: 123
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ACC_DB_USER: omouser
+      ACC_DB_NAME: acc
+      ANON_DB_NAME: anon
+      ANON_DB_USER: omouser
+    ports:
+      - "8081:8081"
+    command: bash -c "bundle install && rm -f tmp/pids/server.pid && bundle exec rails s -p 8081 -b '0.0.0.0'"
+    volumes:
+      - ../omotenashi-pf-authorization:/app
+      - ../omotenashi-pf-redis:/redis-gem
+      - bundle-auth:/bundle
+      - auth-tmp:/app/tmp
+  api-job:
+    <<: *rails-base
+    container_name: api-job
+    environment:
+      API_TYPE: api
+      RAILS_ENV: development
+      RAILS_MASTER_KEY: 42f4d14aeecf3ce0b0fe26353e133ae3
+      BUNDLE_PATH: /bundle/ruby/2.5.0
+      BUNDLE_GITHUB__COM: cm-manage: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
+      DB_USER: omouser
+      DB_NAME: acc
+      DB_HOST: mssql
+      DB_PORT: 1433
+      REDIS_PASS: 123
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ACC_DB_USER: omouser
+      ACC_DB_NAME: acc
+      ANON_DB_NAME: anon
+      ANON_DB_USER: omouser
+    command: bash -c "bundle exec rake jobs:work & bundle exec whenever --update-crontab & cron -f"
+    volumes:
+      - ../omotenashi-pf-api:/app
+      - ../omotenashi-pf-redis:/redis-gem
+      - bundle:/bundle
+      - api-job-tmp:/app/tmp
+  anon-job:
+    <<: *rails-base
+    container_name: anon-job
+    environment:
+      API_TYPE: anon
+      RAILS_ENV: development
+      RAILS_MASTER_KEY: 42f4d14aeecf3ce0b0fe26353e133ae3
+      BUNDLE_PATH: /bundle/ruby/2.5.0
+      BUNDLE_GITHUB__COM: cm-manage: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
+      DB_USER: omouser
+      DB_NAME: anon
+      DB_HOST: mssql
+      DB_PORT: 1433
+      REDIS_PASS: 123
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ACC_DB_USER: omouser
+      ACC_DB_NAME: acc
+      ANON_DB_NAME: anon
+      ANON_DB_USER: omouser
+    command: bash -c "bundle exec rake jobs:work & bundle exec whenever --update-crontab & cron -f"
+    volumes:
+      - ../omotenashi-pf-api:/app
+      - ../omotenashi-pf-redis:/redis-gem
+      - bundle:/bundle
+      - anon-job-tmp:/app/tmp
+  redis-gem:
+    <<: *rails-base
+    container_name: redis-gem
+    environment:
+      RAILS_ENV: development
+      RAILS_MASTER_KEY: 42f4d14aeecf3ce0b0fe26353e133ae3
+      BUNDLE_PATH: /bundle/ruby/2.5.0
+      REDIS_PASS: 123
+    command: bundle exec irb
+    volumes:
+      - ../omotenashi-pf-redis:/app
+      - bundle-redis:/bundle
+  redis:
+    container_name: redis
+    image: redis:6.0-rc
+    command: redis-server --requirepass 123
+    ports:
+      - "6379:6379"
+    networks:
+      - omotenashi-net
+  mssql:
+    container_name: mssql
+    image: mcr.microsoft.com/mssql/server:2019-GA-ubuntu-16.04
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: P@ssw0rd2017
+    ports:
+      - "1433:1433"
+    networks:
+      - omotenashi-net
+    volumes:
+      - mssql-data:/opt/mssql
+      - ./sqls:/sqls
+  nginx:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+      args:
+        APP_ENV: development
+        TYPE: lpapi
+    ports:
+      - "80:80"
+    networks:
+      - omotenashi-net
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    depends_on:
+      - auth
+networks:
+  omotenashi-net:
+volumes:
+  bundle:
+    driver: local
+  bundle-auth:
+    driver: local
+  bundle-redis:
+    driver: local
+  api-tmp:
+    driver: local
+  anon-tmp:
+    driver: local
+  auth-tmp:
+    driver: local
+  mssql-data:
+    driver: local
+  api-job-tmp:
+  anon-job-tmp:

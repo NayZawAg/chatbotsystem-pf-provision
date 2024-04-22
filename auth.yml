@@ -1,0 +1,30 @@
+---
+- hosts: web
+  become_user: root
+  become: yes
+  vars:
+    MACKEREL_DISPLAY_NAME: "authorization"
+  roles:
+    - app
+    - ruby
+    - nginx
+    - nodejs
+    - yarn
+    - mackerel-agent
+
+  tasks:
+    - name: copy nginx config
+      template:
+        src: auth.conf
+        dest: "/etc/nginx/conf.d/{{ HOST_ID }}.conf"
+      tags:
+        - nginx
+
+    - name: add host name
+      blockinfile:
+        path: /etc/hosts
+        block: |
+          127.0.0.1 api.internal
+          127.0.0.1 anon.internal
+      
+

@@ -1,0 +1,11 @@
+---
+- hosts: batch
+  become_user: root
+  become: yes
+  vars:
+    MACKEREL_DISPLAY_NAME: "job"
+  roles:
+    - app
+    - ruby
+    - oracle_client
+    - mackerel-agent

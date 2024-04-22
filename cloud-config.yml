@@ -1,0 +1,126 @@
+#cloud-config
+systemd:
+  units:
+    - name: "etcd2.service"
+      enabled: true
+    - name: "fleet.service"
+      enabled: true
+    - name: settimezone.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Set Time Zone
+
+        [Service]
+        ExecStart=/usr/bin/timedatectl set-timezone Asia/Tokyo
+        RemainAfterExit=yes
+        Type=oneshot
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: create-opt.service
+      contents: |
+        [Unit]
+        Description=Create opt Directory
+        ConditionPathExists=!/opt
+
+        [Service]
+        Type=oneshot
+        ExecStart=mkdir -p /opt/bin
+        ExecStart=mkdir -p /opt/lib/redis
+
+    - name: create-swap.service
+      contents: |
+        [Unit]
+        Description=Create swap file
+        RequiresMountsFor=/opt
+        ConditionPathExists=!/opt/swap
+        Requires=create-opt.service
+        After=create-opt.service
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/fallocate -l 4096m /opt/swap
+        ExecStart=/usr/bin/chmod 600 /opt/swap
+        ExecStart=/usr/sbin/mkswap /opt/swap
+
+    - name: opt-swap.swap
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Turn on swap
+        Requires=create-swap.service
+        After=create-swap.service
+
+        [Swap]
+        What=/opt/swap
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: docker-compose.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Install docker-compose
+        ConditionPathExists=!/opt/bin/docker-compose
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/curl -o /opt/bin/docker-compose -sL "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-linux-x86_64"
+        ExecStart=/usr/bin/chmod +x /opt/bin/docker-compose
+
+        [Install]
+        WantedBy=multi-user.target
+passwd:
+  users:
+    - name: core
+      password_hash: "$1$wLqhpCin$ZUoAmhr0v8gO52u/Hbkyy0"
+      shell: /bin/bash
+      groups:
+        - sudo
+        - docker
+
+storage:
+  files:
+    - path: /etc/sysctl.d/swap.conf
+      filesystem: root
+      mode: 0644
+      contents:
+        inline: |
+          vm.swappiness=10
+          vm.vfs_cache_pressure=50
+
+    - path: /etc/nsswitch.conf
+      filesystem: root
+      mode: 0644
+      contents: 
+        inline: |
+          # /etc/nsswitch.conf:
+
+          passwd:      files usrfiles
+          shadow:      files usrfiles
+          group:       files usrfiles
+
+          hosts:       files usrfiles resolve dns
+          networks:    files usrfiles dns
+
+          services:    files usrfiles
+          protocols:   files usrfiles
+          rpc:         files usrfiles
+
+          ethers:      files
+          netmasks:    files
+          netgroup:    files
+          bootparams:  files
+          automount:   files
+          aliases:     files
+
+    - path: /etc/resolv.conf
+      filesystem: root
+      mode: 0644
+      contents: 
+        inline: |
+          nameserver 8.8.8.8
+

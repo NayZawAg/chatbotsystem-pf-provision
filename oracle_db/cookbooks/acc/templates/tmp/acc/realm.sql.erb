@@ -1,0 +1,71 @@
+--whenever sqlerror exit;
+
+PROMPT --########################################
+PROMPT --# Initialize Realm Configuration
+PROMPT --########################################
+PROMPT --# Delete Realm
+EXECUTE DBMS_MACADM.DELETE_REALM_CASCADE('REALM_AP');
+PAUSE --#@TEST: FINISHED INITIALIZATION. TYPE ENTER TO CONTINUE:
+
+
+PROMPT --########################################
+PROMPT --# Create Realm Configuration
+PROMPT --########################################
+
+PROMPT --# Create Realm
+PAUSE --#@TEST: TYPE ENTER TO CONTINUE:
+BEGIN
+  DBMS_MACADM.CREATE_REALM(
+    realm_name    => 'REALM_AP',
+    description   => 'AP system: Protect all of AP objects. To detect unauthorized access, creates an audit record when a realm violation occurs.',
+
+    enabled       => 'Y', -- DBMS_MACUTL.G_YES
+    audit_options => 1,   -- DBMS_MACUTL.G_REALM_AUDIT_FAIL
+    realm_type  => 1
+  );
+END;
+/
+
+col NAME          for a25
+col DESCRIPTION   for a75
+SELECT
+  NAME
+  ,DESCRIPTION
+FROM DVSYS.DBA_DV_REALM
+WHERE NAME like 'REALM_%'
+order by 1;
+
+PROMPT --# Add Objects to Realm
+PAUSE --#@TEST: TYPE ENTER TO CONTINUE:
+EXECUTE DBMS_MACADM.ADD_OBJECT_TO_REALM('REALM_AP', '<%= @username %>', '%', '%');
+
+col REALM_NAME    for a24
+col OWNER         for a20
+col OBJECT_NAME   for a25
+col OBJECT_TYPE   for a15
+SELECT
+  REALM_NAME
+  ,OWNER
+  ,OBJECT_NAME
+  ,OBJECT_TYPE
+FROM DVSYS.DBA_DV_REALM_OBJECT
+WHERE REALM_NAME like 'REALM_%'
+order by 1,2,3;
+
+PROMPT --# Add Authorization Users to Realm
+PAUSE --#@TEST: TYPE ENTER TO CONTINUE:
+EXECUTE DBMS_MACADM.ADD_AUTH_TO_REALM('REALM_AP', '<%= @username %>', NULL, DBMS_MACUTL.G_REALM_AUTH_OWNER);
+--EXECUTE DBMS_MACADM.ADD_AUTH_TO_REALM('REALM_AP', 'AP_APP', NULL, DBMS_MACUTL.G_REALM_AUTH_PARTICIPANT);
+
+col REALM_NAME    for a24
+col GRANTEE       for a20
+col AUTH_OPTIONS  for a20
+SELECT
+  REALM_NAME
+  ,GRANTEE
+  ,AUTH_OPTIONS
+FROM DVSYS.DBA_DV_REALM_AUTH
+WHERE REALM_NAME like 'REALM_%'
+order by 1,2;
+
+exit;

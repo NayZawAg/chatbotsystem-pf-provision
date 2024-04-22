@@ -1,0 +1,22 @@
+[db]
+default
+
+[staging:children]
+db
+
+[staging:vars]
+ansible_connection=ssh
+ansible_ssh_host=127.0.0.1
+ansible_ssh_port=2222
+ansible_ssh_user=vagrant
+#ansible_ssh_password=vagrant
+
+[all:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+from_user=stganon
+from_pass=iiZah7buf2at8
+from_dsn=146.56.5.129:1521/STGACCOMOTENASHI.a553282.oraclecloud.internal
+to_user=development
+to_pass=password
+to_dsn=develop
+API_PATH=../omotenashi-pf-api/

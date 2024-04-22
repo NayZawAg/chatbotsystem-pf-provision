@@ -1,0 +1,183 @@
+version: "3.7"
+x-rails-base: &rails-base
+  build: ../omotenashi-pf-api
+  networks:
+    - omotenashi-net
+  tty: true
+  stdin_open: true
+  restart: always
+  env_file:
+    - ./env/uat.env
+
+services:
+  api:
+    <<: *rails-base
+    container_name: api
+    environment:
+      API_TYPE: api
+      RAILS_ENV: uat 
+      RACK_ENV: uat
+      RAILS_MASTER_KEY: 42f4d14aeecf3ce0b0fe26353e133ae3
+      BUNDLE_PATH: /bundle/ruby/2.5.0
+      BUNDLE_GITHUB__COM: cm-manage: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
+      DB_USER: Admin123@acjpenuomosql01
+      DB_NAME: ACJPENUOMOSQLDB01
+      DB_HOST: acjpenuomosql01.database.windows.net
+      DB_PORT: 1433
+      REDIS_PASS: kP7ZZ1EQK0IlAmNnGCb43iDawOIx4QQvqNlxyBcV7Nw=
+      REDIS_HOST: ACJPENUOMORDC01.redis.cache.windows.net
+      REDIS_PORT: 6380
+      REDIS_SSL: 1
+      ACC_DB_NAME: ACJPENUOMOSQLDB01
+      ACC_DB_USER: Admin123@acjpenuomosql01
+      ANON_DB_USER: Admin123@acjpenuomosql01
+      ANON_DB_NAME: ACJPENUOMOSQLDB02
+    ports:
+      - "3000:3000"
+    command: bash -c "bundle install && rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - ../omotenashi-pf-api:/app
+      - bundle:/bundle
+      - api-tmp:/app/tmp
+  anon:
+    <<: *rails-base
+    container_name: anon
+    environment:
+      API_TYPE: anon
+      RAILS_ENV: uat
+      RACK_ENV: uat
+      RAILS_MASTER_KEY: 42f4d14aeecf3ce0b0fe26353e133ae3
+      BUNDLE_PATH: /bundle/ruby/2.5.0
+      BUNDLE_GITHUB__COM: cm-manage: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
+      DB_USER: Admin123@acjpenuomosql01
+      DB_NAME: ACJPENUOMOSQLDB02
+      DB_HOST: acjpenuomosql01.database.windows.net
+      DB_PORT: 1433
+      REDIS_PASS: kP7ZZ1EQK0IlAmNnGCb43iDawOIx4QQvqNlxyBcV7Nw=
+      REDIS_HOST: ACJPENUOMORDC01.redis.cache.windows.net
+      REDIS_PORT: 6380
+      REDIS_SSL: 1
+      ACC_DB_NAME: ACJPENUOMOSQLDB01
+      ACC_DB_USER: Admin123@acjpenuomosql01
+      ANON_DB_USER: Admin123@acjpenuomosql01
+      ANON_DB_NAME: ACJPENUOMOSQLDB02
+    ports:
+      - "3100:3100"
+    command: bash -c "bundle install && rm -f tmp/pids/server.pid && bundle exec rails s -p 3100 -b '0.0.0.0'"
+    volumes:
+      - ../omotenashi-pf-api:/app
+      - ../omotenashi-pf-api/db/schema-anon.rb:/app/db/schema.rb
+      - bundle:/bundle
+      - anon-tmp:/app/tmp
+  auth:
+    <<: *rails-base
+    build: ../omotenashi-pf-authorization
+    container_name: auth
+    environment:
+      RAILS_ENV: uat
+      RACK_ENV: uat
+      BUNDLE_PATH: /bundle/ruby/2.5.0
+      BUNDLE_GITHUB__COM: cm-manage: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
+      RAILS_MASTER_KEY: 814009cd443d8f0aca889b10f0dcbc4f
+      RAILS_SERVE_STATIC_FILES: 1
+      DB_NAME: ACJPENUOMOSQLDB01
+      DB_HOST: acjpenuomosql01.database.windows.net
+      DB_PORT: 1433
+      REDIS_PASS: kP7ZZ1EQK0IlAmNnGCb43iDawOIx4QQvqNlxyBcV7Nw=
+      REDIS_HOST: ACJPENUOMORDC01.redis.cache.windows.net
+      REDIS_PORT: 6380
+      REDIS_SSL: 1
+      ACC_DB_NAME: ACJPENUOMOSQLDB01
+      ACC_DB_USER: Admin123@acjpenuomosql01
+      ANON_DB_USER: Admin123@acjpenuomosql01
+      ANON_DB_NAME: ACJPENUOMOSQLDB02
+    ports:
+      - "8080:8080"
+    command: bash -c "bundle install && rm -f tmp/pids/server.pid && bundle exec rails s -p 8080 -b '0.0.0.0'"
+    volumes:
+      - ../omotenashi-pf-authorization:/app
+      - bundle-auth:/bundle
+      - auth-tmp:/app/tmp
+  api-job:
+    <<: *rails-base
+    container_name: api-job
+    environment:
+      API_TYPE: api
+      RAILS_ENV: uat
+      RAILS_MASTER_KEY: 42f4d14aeecf3ce0b0fe26353e133ae3
+      BUNDLE_PATH: /bundle/ruby/2.5.0
+      BUNDLE_GITHUB__COM: cm-manage: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
+      DB_USER: Admin123@acjpenuomosql01
+      DB_NAME: ACJPENUOMOSQLDB01
+      DB_HOST: acjpenuomosql01.database.windows.net
+      DB_PORT: 1433
+      REDIS_PASS: kP7ZZ1EQK0IlAmNnGCb43iDawOIx4QQvqNlxyBcV7Nw=
+      REDIS_HOST: ACJPENUOMORDC01.redis.cache.windows.net
+      REDIS_PORT: 6380
+      REDIS_SSL: 1
+      ACC_DB_NAME: ACJPENUOMOSQLDB01
+      ACC_DB_USER: Admin123@acjpenuomosql01
+      ANON_DB_USER: Admin123@acjpenuomosql01
+      ANON_DB_NAME: ACJPENUOMOSQLDB02
+    command: bash -c "bundle exec rake jobs:work & bundle exec whenever --update-crontab & cron -f"
+    volumes:
+      - ../omotenashi-pf-api:/app
+      - bundle:/bundle
+      - api-job-tmp:/app/tmp
+  anon-job:
+    <<: *rails-base
+    container_name: anon-job
+    environment:
+      API_TYPE: anon
+      RAILS_ENV: uat
+      RAILS_MASTER_KEY: 42f4d14aeecf3ce0b0fe26353e133ae3
+      BUNDLE_PATH: /bundle/ruby/2.5.0
+      BUNDLE_GITHUB__COM: cm-manage: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
+      DB_USER: Admin123@acjpenuomosql01
+      DB_NAME: ACJPENUOMOSQLDB02
+      DB_HOST: acjpenuomosql01.database.windows.net
+      DB_PORT: 1433
+      REDIS_PASS: kP7ZZ1EQK0IlAmNnGCb43iDawOIx4QQvqNlxyBcV7Nw=
+      REDIS_HOST: ACJPENUOMORDC01.redis.cache.windows.net
+      REDIS_PORT: 6380
+      REDIS_SSL: 1
+      ACC_DB_NAME: ACJPENUOMOSQLDB01
+      ACC_DB_USER: Admin123@acjpenuomosql01
+      ANON_DB_USER: Admin123@acjpenuomosql01
+      ANON_DB_NAME: ACJPENUOMOSQLDB02
+    command: bash -c "bundle exec rake jobs:work & bundle exec whenever --update-crontab & cron -f"
+    volumes:
+      - ../omotenashi-pf-api:/app
+      - bundle:/bundle
+      - anon-job-tmp:/app/tmp
+  nginx:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+      args:
+        APP_ENV: uat
+        TYPE: lpapi
+    ports:
+      - "443:443"
+    networks:
+      - omotenashi-net
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    depends_on:
+      - auth
+    restart: always
+
+networks:
+  omotenashi-net:
+
+volumes:
+  bundle:
+    driver: local
+  bundle-auth:
+    driver: local
+  api-tmp:
+  anon-tmp:
+  auth-tmp:
+  api-job-tmp:
+  anon-job-tmp:

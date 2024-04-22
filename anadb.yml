@@ -1,0 +1,198 @@
+---
+- hosts: db
+  become_user: oracle
+  become: yes
+  vars:
+    sqls:
+      - 01_dashboard.sh
+      - 02_dashboard.sh
+      - m_facility.sh
+  tasks:
+    - name: copy create schema
+      become_user: oracle
+      template:
+        src: "sqls/{{ item }}"
+        dest: "/tmp/{{ item }}"
+        mode: 0755
+      with_items: "{{ sqls }}"
+      tags:
+        - sqls
+
+#    - name: execute sqls
+#      become_user: oracle
+#      command: "/tmp/{{ item }}"
+#      with_items: "{{ sqls }}"
+#      tags:
+#        - sqls
+
+    - name: create work directory
+      become_user: oracle
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: 0755
+      with_items:
+        - /home/oracle/analytics
+        - /home/oracle/analytics/logs
+        - /home/oracle/analytics/lib
+      tags:
+        - script
+
+    - name: copy define setting
+      become_user: oracle
+      copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      with_items:
+        - src: "{{ API_PATH }}/config/etc/nationalities.yml"
+          dest: "/home/oracle/analytics/nationalities.yml"
+      tags:
+        - script
+
+    - name: deploy python code
+      become_user: oracle
+      template:
+        src: "scripts/{{ item }}"
+        dest: "/home/oracle/analytics/{{ item }}"
+        mode: 0755
+      with_items:
+        - transform.py
+        - convert.py
+      tags:
+        - script
+
+    - name: install module
+      become_user: root
+      yum:
+        state: present
+        name: "{{ item }}"
+      with_items:
+        - git
+        - zlib-devel
+        - bzip2
+        - bzip2-devel
+        - readline-devel
+        - sqlite
+        - sqlite-devel
+        - openssl-devel
+        - xz
+        - xz-devel
+        - libffi-devel
+      tags:
+        - python
+
+    - name: install pyenv
+      become_user: oracle
+      git:
+        dest: /home/oracle/analytics/pyenv
+        repo: git://github.com/yyuu/pyenv.git
+      tags:
+        - python
+
+    - name: install plugin
+      become_user: oracle
+      shell: bash -lc "PREFIX=/home/oracle/analytics/pyenv-build /home/oracle/analytics/pyenv/plugins/python-build/install.sh"
+      tags:
+        - python
+
+    - name: setting pyenv path
+      become_user: oracle
+      blockinfile:
+        dest: ~/.bashrc
+        insertafter: '^# PYTHON ENV'
+        content: |
+          export PYENV_ROOT=/home/oracle/analytics/pyenv
+          export PATH="$PYENV_ROOT/bin:/home/oracle/analytics/pyenv-buid/bin:$PATH"
+          eval "$(pyenv init -)"
+      tags:
+        - python
+
+    - name: set python version
+      become_user: oracle
+      copy:
+        src: files/python-version
+        dest: /home/oracle/analytics/.python-version
+      tags:
+        - python
+
+    - name: install python
+      become_user: oracle
+      shell: bash -lc "cat .python-version | pyenv install"
+      args:
+        chdir: analytics
+      ignore_errors: True
+      tags:
+        - python
+
+    - name: rehash
+      become_user: oracle
+      shell: bash -lc "pyenv rehash"
+      args:
+        chdir: analytics
+      ignore_errors: True
+      tags:
+        - python
+
+    - name: python use setting
+      become_user: oracle
+      set_fact: ansible_python_interpreter=/home/oracle/analytics/pyenv/shims/python
+      tags:
+        - python
+        - script
+
+    - name: upgrade pip
+      become_user: oracle
+      shell: bash -lc "pip install --upgrade pip"
+      args:
+        chdir: analytics
+      ignore_errors: True
+      tags:
+        - python
+
+    - name: install pip modules
+      become_user: oracle
+      pip:
+        name: "{{ item }}"
+        extra_args: -t lib/
+        chdir: /home/oracle/analytics
+      with_items:
+        - cx_oracle
+        - pyyaml
+        - python-dateutil
+        - pytz
+      ignore_errors: True
+      tags:
+        - script
+
+    - name: cron env
+      become_user: oracle
+      cron:
+        env: yes
+        name: ORACLE_HOME
+        value: /u01/app/oracle/product/12.1.0/dbhome_1
+      tags:
+        - cron
+
+    - name: cron setting
+      become_user: oracle
+      cron:
+        minute: "0"
+        hour: "1"
+        day: "*"
+        month: "*"
+        weekday: "*"
+        user: oracle
+        job: "cd analytics && ./pyenv/shims/python transform.py &>> logs/transform.log"
+        state: present
+        name: "transform"
+      tags:
+        - cron
+
+    - name: set logrotation
+      copy:
+        src: files/transform.logrotation
+        dest: /etc/logrotate.d/transform
+      become_user: root
+      tags:
+        - logrotation
+

@@ -1,0 +1,20 @@
+---
+- hosts: lb
+  become_user: root
+  become: yes
+  vars:
+    MACKEREL_DISPLAY_NAME: "anonymization-lb"
+  roles:
+    - nginx
+    - mackerel-agent
+
+  tasks:
+    - name: copy nginx config
+      template:
+        src: anonlb.conf
+        dest: "/etc/nginx/conf.d/{{ HOST_ID }}.conf"
+      tags:
+        - nginx
+
+
+
