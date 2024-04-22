@@ -1,0 +1,45 @@
+---
+- name: import mackerel GPG key
+  rpm_key: key=https://mackerel.io/assets/files/GPG-KEY-mackerel
+
+- name: add repository 'mackerel' (CentOS)
+  copy: src=repo/centos-mackerel.repo dest=/etc/yum.repos.d/mackerel.repo owner=root group=root mode=0644
+  when: (ansible_distribution == "CentOS" or ansible_distribution == "Red Hat Enterprise Linux" or ansible_pkg_mgr == "yum") and ansible_distribution != "Amazon"
+
+- name: add repository 'mackerel' (AmazonLinux)
+  copy: src=repo/amazonlinux-mackerel.repo dest=/etc/yum.repos.d/mackerel.repo owner=root group=root mode=0644
+  when: ansible_distribution == "Amazon"
+
+- name: install mackerel-agent
+  yum: name=mackerel-agent state=latest
+
+- name: install mackerel-agent-plugins
+  yum: name=mackerel-agent-plugins state=latest
+  notify:
+    - reload mackerel-agent
+
+- name: install mackerel-check-plugins
+  yum: name=mackerel-check-plugins state=latest
+  notify: reload mackerel-agent
+
+- stat: path=/usr/bin/mackerel-plugin-linux-proc-stats
+  register: proc_plugin_bin
+
+- name: install linux-proc-stats plugin
+  unarchive:
+    src: https://github.com/tkuchiki/mackerel-plugin-linux-proc-stats/releases/download/v0.3/mackerel-plugin-linux-proc-stats_linux_amd64.zip
+    dest: /usr/bin
+    remote_src: yes
+  when: not proc_plugin_bin.stat.exists
+
+- name: create role-metrics conf dir
+  file: path=/etc/mackerel-agent/conf.d state=directory owner=root group=root mode=0755
+  # conf.d/*.conf -> deploy
+
+- name: update common config
+  template: src=mackerel-agent.conf.j2 dest=/etc/mackerel-agent/mackerel-agent.conf
+  notify: reload mackerel-agent
+
+- name: start mackerel-agent
+  service: name=mackerel-agent state=started
+

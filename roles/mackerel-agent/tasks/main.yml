@@ -1,0 +1,6 @@
+---
+- include: run.yml
+  when: MACKEREL is defined
+  tags:
+    - mackerel
+

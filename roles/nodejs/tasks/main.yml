@@ -1,0 +1,21 @@
+---
+- name: download package
+  get_url:
+    url: https://rpm.nodesource.com/setup_10.x
+    dest: /tmp/setup_10.x
+    mode: 0755
+  tags:
+    - nodejs
+
+- name: install package
+  shell: bash /tmp/setup_10.x
+  tags:
+    - nodejs
+
+- name: install nodejs
+  yum:
+    name: nodejs
+    state: present
+  tags:
+    - nodejs
+
