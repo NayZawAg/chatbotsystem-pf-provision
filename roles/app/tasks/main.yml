@@ -1,0 +1,40 @@
+---
+# tasks file for app
+- name: make directory
+  file:
+    path: "/usr/local/{{ HOST_ID }}"
+    mode: 0755
+    owner: "{{ APP_USER }}"
+    group: "{{ APP_USER }}"
+    state: directory
+
+- name: make shared config irectory
+  file:
+    path: "/usr/local/{{ HOST_ID }}/shared/config"
+    mode: 0755
+    owner: "{{ APP_USER }}"
+    group: "{{ APP_USER }}"
+    state: directory
+
+- name: copy config master key file
+  copy:
+    dest: "/usr/local/{{ HOST_ID }}/shared/config/master.key"
+    src: "master.key"
+    mode: 0644
+    owner: "{{ APP_USER }}"
+    group: "{{ APP_USER }}"
+  when: "'development' not in group_names"
+
+- name: copy config puma file
+  template:
+    dest: "/usr/local/{{ HOST_ID }}/shared/config/puma.rb"
+    src: "puma.rb"
+    mode: 0644
+    owner: "{{ APP_USER }}"
+    group: "{{ APP_USER }}"
+  when: '"web" in group_names'
+
+- name: Install Git
+  yum:
+    name: git
+
