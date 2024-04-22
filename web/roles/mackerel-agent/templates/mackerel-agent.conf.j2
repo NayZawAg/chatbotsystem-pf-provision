@@ -1,0 +1,19 @@
+apikey = "{{ MACKEREL.APIKEY }}"
+{% if MACKEREL.DISPLAY_NAME is defined %}
+display_name = "{{ MACKEREL.DISPLAY_NAME }}"
+{% endif %}
+
+roles = [
+  "{{ MACKEREL.ROLE_PREFIX }}{{ MACKEREL.DISPLAY_NAME }}_{{STAGE}}"
+]
+
+include = "/etc/mackerel-agent/conf.d/*.conf"
+
+{% if 'production' in STAGE %}
+[host_status]
+on_start = "working"
+
+{% endif %}
+[plugin.metrics.linux]
+command = "mackerel-plugin-linux"
+

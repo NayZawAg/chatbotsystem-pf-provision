@@ -1,0 +1,13 @@
+---
+# tasks file for app
+- name: make directory
+  file:
+    path: "/usr/local/{{ HOST_ID }}"
+    mode: 0755
+    owner: "{{ APP_USER }}"
+    group: "{{ APP_USER }}"
+    state: directory
+
+- name: Install Git
+  yum:
+    name: git

@@ -1,0 +1,56 @@
+---
+# tasks file for php
+- name: Install wget
+  yum:
+    name: wget
+
+- name: backup yum repo
+  shell: mv /etc/yum.repos.d/public-yum-ol7.repo /etc/yum.repos.d/public-yum-ol7.repo.bak
+
+- name: get yum repo
+  get_url:
+    dest: /etc/yum.repos.d/public-yum-ol7.repo
+    url: http://yum.oracle.com/public-yum-ol7.repo
+
+- name: upgrade all packages
+  yum:
+    name: '*'
+    state: latest
+
+- name: Install yum-utils
+  yum:
+    name: yum-utils
+
+- name: php71
+  shell: yum-config-manager --enable ol7_developer_php71
+
+- name: Install PHP
+  yum: name={{ item }} state=present
+  with_items:
+    - php
+    - php-devel
+    - php-mbstring
+    - php-gd
+    - php-fpm
+- name: php fpm start
+  service:
+    name: php-fpm
+    state: started
+    enabled: yes
+- lineinfile: dest=/etc/php.ini
+    regexp=';date.timezone ='
+    line='date.timezone = Asia/Tokyo'
+- lineinfile: dest=/etc/php.ini
+    regexp='session.gc_maxlifetime ='
+    line='session.gc_maxlifetime = 1800'
+- lineinfile: dest=/etc/php.ini
+    regexp='memory_limit ='
+    line='memory_limit = 256M'
+- lineinfile: "dest=/etc/php-fpm.d/www.conf
+    state=present
+    regexp='^user = apache'
+    line='user = nginx'"
+- lineinfile: "dest=/etc/php-fpm.d/www.conf
+    state=present
+    regexp='^group = apache'
+    line='group = nginx'"

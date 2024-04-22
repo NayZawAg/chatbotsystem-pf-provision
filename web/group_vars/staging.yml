@@ -1,0 +1,6 @@
+STAGE: staging
+APP_USER: opc
+MACKEREL:
+  APIKEY: "f1Sv9RJJ6yeeJt85ehmYTHf4MerzPe6GkdQPREJiBNhq"
+  DISPLAY_NAME: "web"
+  ROLE_PREFIX: "STG:"

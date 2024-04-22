@@ -1,0 +1,39 @@
+CREATE DATABASE acc
+COLLATE Japanese_CI_AS;
+GO
+
+CREATE DATABASE anon
+COLLATE Japanese_CI_AS;
+GO
+
+USE acc
+GO
+
+CREATE LOGIN omouser WITH PASSWORD='$(pass)';
+CREATE USER omouser FOR LOGIN omouser WITH DEFAULT_SCHEMA=omouser;
+GO
+
+CREATE SCHEMA omouser AUTHORIZATION omouser;
+GO
+
+GRANT ALL PRIVILEGES ON SCHEMA::omouser TO omouser;
+GO
+
+GRANT CONTROL ON DATABASE::acc TO omouser;
+GO
+
+
+USE anon
+GO
+
+CREATE USER omouser FOR LOGIN omouser WITH DEFAULT_SCHEMA=omouser;
+GO
+
+CREATE SCHEMA omouser AUTHORIZATION omouser;
+GO
+
+GRANT ALL PRIVILEGES ON SCHEMA::omouser TO omouser;
+GO
+
+GRANT CONTROL ON DATABASE::anon TO omouser;
+GO
