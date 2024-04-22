@@ -1,0 +1,9 @@
+/home/oracle/analytics/logs/*.log {
+        daily
+        missingok
+        rotate 7
+        compress
+        delaycompress
+        notifempty
+        create 640 oracle oinstall
+}

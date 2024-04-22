@@ -1,0 +1,95 @@
+server_tokens off;
+
+server {
+  listen 443 ssl;
+  server_name withjorge.jp;
+  ssl_certificate ssl/web-access.crt;
+  ssl_certificate_key ssl/web-access.key;
+
+  return 301 https://www.withjorge.jp$request_uri;
+}
+
+server {
+  listen 443 ssl;
+  server_name www.withjorge.jp;
+
+  access_log  /var/log/nginx/access.log;
+  error_log  /var/log/nginx/error.log;
+
+  root /var/www/html/web;
+  index index.php;
+  try_files $uri.php $uri/index.php @php;
+
+  error_page 404 /pages/404.html;
+  error_page 500 502 503 504 /pages/50x.html;
+
+  ssl_certificate ssl/web-access.crt;
+  ssl_certificate_key ssl/web-access.key;
+
+  location /favicon.ico {
+    log_not_found off;
+    access_log off;
+  }
+
+  location /en/ {
+    rewrite ^/en/(.*)$ /$1 last;
+  }
+
+  location /en {
+    rewrite /en / last;
+  }
+
+  location /assets/ {
+    expires 300;
+    break;
+  }
+
+
+  location @php {
+    root /var/www/html/web/pages;
+
+    try_files $uri $uri.php $uri/index.php =404;
+
+    include fastcgi_params;
+    fastcgi_pass  web:9000;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+  }
+}
+
+server {
+  listen 443 ssl;
+  server_name chat.withjorge.jp;
+
+  access_log  /var/log/nginx/access.log;
+  error_log  /var/log/nginx/error.log;
+
+  root /var/www/html/chatbot;
+  index index.php;
+  try_files $uri.php $uri/index.php @php;
+
+  error_page 404 /pages/404.php;
+  error_page 500 502 503 504 /pages/50x.php;
+
+  ssl_certificate ssl/web-chatbot.crt;
+  ssl_certificate_key ssl/web-chatbot.key;
+
+  location /favicon.ico {
+    log_not_found off;
+    access_log off;
+  }
+
+  location /assets/ {
+    expires 300;
+    break;
+  }
+
+  location @php {
+    root /var/www/html/chatbot/pages;
+
+    try_files $uri $uri.php $uri/index.php =404;
+
+    include fastcgi_params;
+    fastcgi_pass  chatbot:9000;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+  }
+}
