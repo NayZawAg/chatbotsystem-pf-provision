@@ -1,0 +1,52 @@
+---
+# tasks file for oracle-client
+- name: copy rpm oracle baisc client
+  copy:
+    dest: /tmp/oracle-instantclient12.1-basic-12.1.0.2.0-1.x86_64.rpm
+    src: oracle-instantclient12.1-basic-12.1.0.2.0-1.x86_64.rpm
+
+- name: copy rpm oracle devel client
+  copy:
+    dest: /tmp/oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
+    src: oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
+
+- name: copy rpm oracle sqlplus client
+  copy:
+    dest: /tmp/oracle-instantclient12.1-sqlplus-12.1.0.2.0-1.x86_64.rpm
+    src: oracle-instantclient12.1-sqlplus-12.1.0.2.0-1.x86_64.rpm
+
+- name: Install oracle baisc client
+  yum:
+    name: /tmp/oracle-instantclient12.1-basic-12.1.0.2.0-1.x86_64.rpm
+    state: present
+
+- name: Install oracle devel client
+  yum:
+    name: /tmp/oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
+    state: present
+
+- name: Install oracle sqlplus client
+  yum:
+    name: /tmp/oracle-instantclient12.1-sqlplus-12.1.0.2.0-1.x86_64.rpm
+    state: present
+
+- name: delete rpm file oracle baisc client
+  file:
+    path: /tmp/oracle-instantclient12.1-basic-12.1.0.2.0-1.x86_64.rpm
+    state: absent
+
+- name: delete rpm file oracle devel client
+  file:
+    path: /tmp/oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
+    state: absent
+
+- name: delete rpm file oracle sqlplus client
+  file:
+    path: /tmp/oracle-instantclient12.1-sqlplus-12.1.0.2.0-1.x86_64.rpm
+    state: absent
+
+- name: add path
+  copy:
+    dest: "/etc/profile.d/oracle.sh"
+    src: "oracle.sh"
+    mode: 0755
