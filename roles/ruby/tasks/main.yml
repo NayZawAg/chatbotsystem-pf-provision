@@ -1,0 +1,77 @@
+---
+# tasks file for ruby
+- include_vars: "main.yml"
+  tags:
+    - ruby
+
+- name: install module
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ package_module }}"
+  tags:
+    - ruby
+
+- name: clone rbenv
+  git:
+    repo: https://github.com/rbenv/rbenv.git
+    dest: /usr/local/rbenv
+    accept_hostkey: yes
+    update: yes
+    force: yes
+  tags:
+    - ruby
+
+- name: clone ruby-build
+  git:
+    repo: https://github.com/sstephenson/ruby-build.git
+    dest: /usr/local/rbenv/plugins/ruby-build
+    accept_hostkey: yes
+    update: yes
+    force: yes
+  tags:
+    - ruby
+
+- name: create rbenv.sh
+  file:
+    path: /etc/profile.d/rbenv.sh
+    state: touch
+  tags:
+    - ruby
+
+- name: add path
+  copy:
+    dest: "/etc/profile.d/rbenv.sh"
+    src: "rbenv.sh"
+    mode: 0755
+  tags:
+    - ruby
+
+- name: install ruby
+  shell: 'bash -lc "/usr/local/rbenv/bin/rbenv install -s {{ item }}"'
+  with_items:
+    - "{{ ruby_version }}"
+    - "2.3.0"
+  tags:
+    - ruby
+
+# ruby のバージョンを指定
+- name: set global ruby version
+  become: yes
+  shell: 'bash -lc "/usr/local/rbenv/bin/rbenv global 2.5.1"'
+  tags:
+    - ruby
+
+- name: set root ruby version
+  become: no
+  shell: 'bash -lc "/usr/local/rbenv/bin/rbenv local {{ ruby_version }}"'
+  tags:
+    - ruby
+
+- name: gem install bundler
+  gem:
+    name: bundler
+    user_install: no
+    executable: /usr/local/rbenv/shims/gem
+  tags:
+    - ruby

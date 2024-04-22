@@ -1,0 +1,17 @@
+---
+- name: download package
+  get_url:
+    url: https://yarnpkg.com/install.sh
+    dest: /tmp/yarn_install.sh
+    mode: 0755
+  tags:
+    - yarn
+
+- name: install package
+  become: yes
+  become_user: opc
+  shell: bash /tmp/yarn_install.sh
+  tags:
+    - yarn
+
+

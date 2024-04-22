@@ -1,0 +1,17 @@
+---
+# vars file for ruby
+package_module:
+  - "@Development Tools"
+  - "libxml2"
+  - "libxslt"
+  - "libxml2-devel"
+  - "libxslt-devel"
+  - "gcc"
+  - "sqlite"
+  - "sqlite-devel"
+  - "gcc-c++"
+  - "git"
+  - "openssl-devel"
+  - "readline-devel"
+  - "mysql-devel"
+
